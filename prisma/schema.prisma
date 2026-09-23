@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ═══════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════
+
+enum Role {
+  PASSENGER
+  OPERATOR
+  ADMIN
+}
+
+enum StatusVoo {
+  PROGRAMADO
+  EMBARCANDO
+  DECOLADO
+  CANCELADO
+}
+
+enum StatusReserva {
+  CONFIRMADA
+  CANCELADA
+  UTILIZADA
+}
+
+enum StatusEmbarque {
+  PENDENTE
+  REALIZADO
+  BLOQUEADO
+}
+
+// ═══════════════════════════════════════════════════════════
+// USUÁRIO
+// ═══════════════════════════════════════════════════════════
+
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  email        String   @unique
+  senha        String
+  role         Role     @default(PASSENGER)
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  reservas Reserva[]
+
+  @@map("usuarios")
+}
+
+// ═══════════════════════════════════════════════════════════
+// COMPANHIA AÉREA
+// ═══════════════════════════════════════════════════════════
+
+model CompanhiaAerea {
+  id           Int      @id @default(autoincrement())
+  nome         String
+  codigoIATA   String   @unique
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  aeronaves Aeronave[]
+
+  @@map("companhias_aereas")
+}
+
+// ═══════════════════════════════════════════════════════════
+// AERONAVE
+// ═══════════════════════════════════════════════════════════
+
+model Aeronave {
+  id           Int      @id @default(autoincrement())
+  modelo       String
+  matricula    String   @unique
+  capacidade   Int
+  ativo        Boolean  @default(true)
+  companhiaId  Int
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  companhia CompanhiaAerea @relation(fields: [companhiaId], references: [id])
+  voos      Voo[]
+
+  @@map("aeronaves")
+}
+
+// ═══════════════════════════════════════════════════════════
+// PORTÃO
+// ═══════════════════════════════════════════════════════════
+
+model Portao {
+  id           Int      @id @default(autoincrement())
+  codigo       String   @unique
+  terminal     String
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  voos Voo[]
+
+  @@map("portoes")
+}
+
+// ═══════════════════════════════════════════════════════════
+// VOO
+// ═══════════════════════════════════════════════════════════
+
+model Voo {
+  id           Int       @id @default(autoincrement())
+  numero       String    @unique
+  origem       String
+  destino      String
+  dataPartida  DateTime
+  dataChegada  DateTime
+  status       StatusVoo @default(PROGRAMADO)
+  aeronaveId   Int
+  portaoId     Int
+  criadoEm     DateTime  @default(now())
+  atualizadoEm DateTime  @updatedAt
+
+  aeronave  Aeronave  @relation(fields: [aeronaveId], references: [id])
+  portao    Portao    @relation(fields: [portaoId], references: [id])
+  reservas  Reserva[]
+
+  @@map("voos")
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESERVA
+// ═══════════════════════════════════════════════════════════
+
+model Reserva {
+  id            Int            @id @default(autoincrement())
+  usuarioId     Int
+  vooId         Int
+  assento       String
+  status        StatusReserva  @default(CONFIRMADA)
+  documentoUrl  String?
+  criadoEm      DateTime       @default(now())
+  atualizadoEm  DateTime       @updatedAt
+
+  usuario  Usuario   @relation(fields: [usuarioId], references: [id])
+  voo      Voo       @relation(fields: [vooId], references: [id])
+  embarque Embarque?
+
+  // ⚠️ NÃO existe @@unique em [vooId, assento] porque queremos
+  // permitir histórico: várias reservas CANCELADAS no mesmo assento.
+  // A proteção "assento ocupado" é feita no ReservasService (criar),
+  // dentro de transação Serializable, checando se existe alguma
+  // reserva NÃO-CANCELADA nesse assento.
+  
+  // Um usuário não pode ter 2 reservas no mesmo voo
+  @@unique([usuarioId, vooId])
+  @@map("reservas")
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMBARQUE
+// ═══════════════════════════════════════════════════════════
+
+model Embarque {
+  id           Int              @id @default(autoincrement())
+  reservaId    Int              @unique
+  data         DateTime         @default(now())
+  status       StatusEmbarque   @default(PENDENTE)
+  observacao   String?
+  criadoEm     DateTime         @default(now())
+
+  reserva Reserva @relation(fields: [reservaId], references: [id])
+
+  @@map("embarques")
+}
