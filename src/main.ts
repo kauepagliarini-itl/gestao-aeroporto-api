@@ -133,9 +133,6 @@ async function bootstrap() {
 
   SwaggerModule.setup('api/docs', app, document);
  
-
-  SwaggerModule.setup('api/docs', app, document);
-
   // ═══════════════════════════════════════════════════════════════
   // START DO SERVIDOR
   // ═══════════════════════════════════════════════════════════════

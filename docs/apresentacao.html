@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apresentação — API Gestão de Aeroporto Regional</title>
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       RESET E VARIÁVEIS DE DESIGN
+    ═══════════════════════════════════════════════════════════ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --azul-escuro: #0d1b2a;
+      --azul-medio: #1b263b;
+      --azul-claro: #415a77;
+      --cinza-claro: #e0e1dd;
+      --branco: #f8f9fa;
+      --accent: #4cc9f0;
+      --accent-verde: #2ecc71;
+      --accent-amarelo: #f1c40f;
+      --accent-vermelho: #e74c3c;
+      --accent-laranja: #e67e22;
+      --sombra: 0 2px 8px rgba(0,0,0,0.08);
+      --radius: 8px;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--branco);
+      color: var(--azul-escuro);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MENU LATERAL FIXO
+    ═══════════════════════════════════════════════════════════ */
+    .sidebar {
+      width: 280px;
+      background: var(--azul-escuro);
+      color: var(--cinza-claro);
+      padding: 24px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid var(--azul-medio);
+    }
+
+    .sidebar-header {
+      padding: 0 24px 20px;
+      border-bottom: 1px solid var(--azul-medio);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-header h1 {
+      color: var(--branco);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: var(--azul-claro);
+      margin-top: 4px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 10px 24px;
+      color: var(--cinza-claro);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar nav a:hover {
+      background: var(--azul-medio);
+      color: var(--branco);
+      border-left-color: var(--accent);
+    }
+
+    .sidebar nav a.active {
+      background: var(--azul-medio);
+      color: var(--accent);
+      border-left-color: var(--accent);
+      font-weight: 500;
+    }
+
+    .sidebar nav a .num {
+      display: inline-block;
+      width: 22px;
+      color: var(--azul-claro);
+      font-size: 12px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       CONTEÚDO PRINCIPAL
+    ═══════════════════════════════════════════════════════════ */
+    .main {
+      margin-left: 280px;
+      flex: 1;
+      padding: 40px 56px;
+      max-width: calc(100vw - 280px);
+    }
+
+    section {
+      scroll-margin-top: 24px;
+      padding: 32px 0;
+      border-bottom: 1px solid var(--cinza-claro);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    h2 {
+      font-size: 26px;
+      color: var(--azul-escuro);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h2 .badge {
+      background: var(--accent);
+      color: var(--azul-escuro);
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .section-desc {
+      color: var(--azul-claro);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .placeholder {
+      background: #fff3cd;
+      border-left: 4px solid var(--accent-amarelo);
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      color: #856404;
+      font-size: 14px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       CARDS E COMPONENTES (a serem usados depois)
+    ═══════════════════════════════════════════════════════════ */
+    .card {
+      background: white;
+      border: 1px solid var(--cinza-claro);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: var(--sombra);
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--azul-escuro);
+    }
+
+    code {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      background: var(--azul-escuro);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    pre {
+      background: var(--azul-escuro);
+      color: var(--cinza-claro);
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 12px 0;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Cores de status HTTP */
+    .s-200 { color: var(--accent-verde); font-weight: 600; }
+    .s-201 { color: var(--accent-verde); font-weight: 600; }
+    .s-400 { color: var(--accent-amarelo); font-weight: 600; }
+    .s-401 { color: var(--accent-laranja); font-weight: 600; }
+    .s-403 { color: var(--accent-laranja); font-weight: 600; }
+    .s-404 { color: var(--accent-vermelho); font-weight: 600; }
+    .s-409 { color: var(--accent-vermelho); font-weight: 600; }
+    .s-429 { color: #9b59b6; font-weight: 600; }
+    .s-503 { color: var(--accent-vermelho); font-weight: 600; }
+    .s-504 { color: var(--accent-vermelho); font-weight: 600; }
+
+    /* Botão voltar ao topo */
+    .back-top {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: var(--azul-escuro);
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .back-top.show { display: block; }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MENU LATERAL
+  ═══════════════════════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>✈️ Gestão de Aeroporto</h1>
+      <p>Guia de apresentação</p>
+    </div>
+    <nav>
+      <a href="#visao-geral"><span class="num">1.</span> Visão Geral</a>
+      <a href="#roteiro-demo"><span class="num">2.</span> Roteiro da Demo</a>
+      <a href="#regras-negocio"><span class="num">3.</span> Regras de Negócio</a>
+      <a href="#endpoints"><span class="num">4.</span> Endpoints (Cheat Sheet)</a>
+      <a href="#perguntas"><span class="num">5.</span> Perguntas Prováveis</a>
+      <a href="#decisoes"><span class="num">6.</span> Decisões Técnicas</a>
+    </nav>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CONTEÚDO
+  ═══════════════════════════════════════════════════════════ -->
+  <main class="main">
+
+        <section id="visao-geral">
+      <h2>1. Visão Geral <span class="badge">Introdução</span></h2>
+      <p class="section-desc">
+        Abertura da apresentação — o que é o projeto, stack, entidades, perfis e números.
+      </p>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CARD 1: O QUE É -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent);">
+        <h3>✈️ O projeto</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          API REST completa para <strong>gestão de aeroporto regional</strong>. Cobre autenticação,
+          CRUDs administrativos, operações do usuário autenticado, fluxos de estado do domínio,
+          integração externa, upload de arquivos e regras de negócio reais.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          Desenvolvido como <strong>avaliação técnica backend</strong> em 5 dias, seguindo o
+          enunciado <em>AV-05-AEROPORTO</em>.
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CARD 2: STACK -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>📚 Stack técnica</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px; width: 220px;"><strong>Framework</strong></td>
+            <td style="padding: 8px;">NestJS + TypeScript</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Banco</strong></td>
+            <td style="padding: 8px;">PostgreSQL</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>ORM</strong></td>
+            <td style="padding: 8px;">Prisma 7 + driver adapter (<code>@prisma/adapter-pg</code>) + migrations</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Validação</strong></td>
+            <td style="padding: 8px;">DTOs + class-validator + ValidationPipe</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Autenticação</strong></td>
+            <td style="padding: 8px;">JWT + bcrypt + 3 guards (API Key, JWT, Roles)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Integração externa</strong></td>
+            <td style="padding: 8px;">HttpService + Open-Meteo (clima e geocoding)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Upload</strong></td>
+            <td style="padding: 8px;">Multer + validação de tipo e tamanho</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Segurança</strong></td>
+            <td style="padding: 8px;">Helmet + Compression + Rate Limiting + X-API-KEY</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Documentação</strong></td>
+            <td style="padding: 8px;">Swagger em <code>/api/docs</code></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;"><strong>Configuração</strong></td>
+            <td style="padding: 8px;">.env + ConfigService + validação com Joi</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CARD 3: ENTIDADES -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🗂️ Entidades modeladas <span style="font-size: 12px; color: var(--azul-claro); font-weight: 400;">(7 obrigatórias do enunciado)</span></h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px; width: 180px;"><strong>Usuario</strong></td>
+            <td style="padding: 8px; color: var(--azul-claro);">Dados de acesso, role, flag <code>ativo</code></td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>CompanhiaAerea</strong></td>
+            <td style="padding: 8px; color: var(--azul-claro);">Empresa aérea + código IATA único</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Aeronave</strong></td>
+            <td style="padding: 8px; color: var(--azul-claro);">Modelo, matrícula única, capacidade</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Portao</strong></td>
+            <td style="padding: 8px; color: var(--azul-claro);">Código, terminal, flag <code>ativo</code></td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Voo</strong></td>
+            <td style="padding: 8px; color: var(--azul-claro);">Número, origem, destino, datas, status (4 estados)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 8px;"><strong>Reserva</strong></td>
+            <td style="padding: 8px; color: var(--azul-claro);">Passageiro + voo + assento + documento + status (3 estados)</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;"><strong>Embarque</strong></td>
+            <td style="padding: 8px; color: var(--azul-claro);">Registro do embarque da reserva + status + observação</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CARD 4: PERFIS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>👤 Perfis de acesso</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--accent);">
+              <th style="text-align: left; padding: 8px;">Perfil</th>
+              <th style="text-align: left; padding: 8px;">Permissões</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--cinza-claro);">
+              <td style="padding: 8px; color: var(--accent-verde); font-weight: 700;">PASSENGER</td>
+              <td style="padding: 8px; color: var(--azul-claro);">
+                Criar reserva · cancelar a própria · ver as próprias · anexar documento · consultar clima
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--cinza-claro);">
+              <td style="padding: 8px; color: var(--accent-amarelo); font-weight: 700;">OPERATOR</td>
+              <td style="padding: 8px; color: var(--azul-claro);">
+                Tudo do PASSENGER + gerenciar voos e embarques + ver todas as reservas + dashboard
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; color: var(--accent-vermelho); font-weight: 700;">ADMIN</td>
+              <td style="padding: 8px; color: var(--azul-claro);">
+                Acesso total + gestão de companhias, aeronaves, portões e usuários
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CARD 5: NÚMEROS DO PROJETO -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="background: var(--azul-escuro); border: none;">
+        <h3 style="color: var(--branco);">📊 Números do projeto</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-top: 16px;">
+          <div style="background: var(--azul-medio); padding: 16px; border-radius: var(--radius); text-align: center;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--accent);">7</div>
+            <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 4px;">Entidades</div>
+          </div>
+          <div style="background: var(--azul-medio); padding: 16px; border-radius: var(--radius); text-align: center;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--accent);">40+</div>
+            <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 4px;">Endpoints</div>
+          </div>
+          <div style="background: var(--azul-medio); padding: 16px; border-radius: var(--radius); text-align: center;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--accent);">3</div>
+            <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 4px;">Perfis</div>
+          </div>
+          <div style="background: var(--azul-medio); padding: 16px; border-radius: var(--radius); text-align: center;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--accent);">4</div>
+            <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 4px;">Migrations</div>
+          </div>
+          <div style="background: var(--azul-medio); padding: 16px; border-radius: var(--radius); text-align: center;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--accent);">8</div>
+            <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 4px;">Regras de negócio</div>
+          </div>
+          <div style="background: var(--azul-medio); padding: 16px; border-radius: var(--radius); text-align: center;">
+            <div style="font-size: 28px; font-weight: 700; color: var(--accent);">10</div>
+            <div style="font-size: 12px; color: var(--cinza-claro); margin-top: 4px;">Cenários testados</div>
+          </div>
+        </div>
+      </div>
+
+            <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CARD 5.5: HEALTH CHECK -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🩺 Health Check — <code>GET /health</code> <span style="font-size: 11px; background: var(--accent-laranja); color: white; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">EXTRA</span></h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          <strong>O que é:</strong> endpoint de observabilidade que responde "a API está viva e saudável?".
+          É o sinal vital do sistema.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          <strong>O que verifica (em paralelo):</strong>
+        </p>
+        <ul style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.9;">
+          <li>A API está rodando</li>
+          <li>O <strong>banco</strong> responde (<code>SELECT 1</code> no Postgres)</li>
+          <li>A <strong>API externa de clima</strong> responde (chamada leve)</li>
+        </ul>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          <strong>Como acessar:</strong> <code>GET /health</code> — só precisa do <code>X-API-KEY</code>.
+        </p>
+        <pre style="margin: 12px 0;"><code>{
+  "status": "ok",
+  "uptimeSegundos": 1234,
+  "servicos": {
+    "database": { "status": "ok" },
+    "climaApi": { "status": "ok" }
+  }
+}</code></pre>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          <strong>Pra que serve:</strong> ferramentas de monitoramento (Kubernetes, AWS) batem nesse endpoint
+          periodicamente. Se algo falhar, elas reinicia a instância sozinhas — sem ninguém acordar de madrugada.
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>🎤 O que falar se perguntarem:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-laranja); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "O /health é o endpoint de observabilidade. Reporta o estado dos serviços críticos — banco, APIs externas e uptime. Ferramentas de monitoramento batem nele e decidem se a instância está saudável. Não faz regra de negócio, só observa."
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CARD 5.6: DASHBOARD -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>📊 Dashboard — <code>GET /dashboard/indicadores</code> <span style="font-size: 11px; background: var(--accent-laranja); color: white; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">EXTRA</span></h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          <strong>O que é:</strong> endpoint que agrega dados e devolve visão de negócio pronta.
+          É o "painel do gerente".
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          <strong>Indicadores calculados em tempo real:</strong>
+        </p>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><code>voosPorStatus</code></td>
+            <td style="padding: 6px 8px; color: var(--azul-claro);">Quantos voos em cada status</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><code>taxaOcupacaoMedia</code></td>
+            <td style="padding: 6px 8px; color: var(--azul-claro);">% média de ocupação das aeronaves</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><code>portaoMaisUsado</code></td>
+            <td style="padding: 6px 8px; color: var(--azul-claro);">Portão com mais voos + quantidade</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><code>embarquesUltimas24h</code></td>
+            <td style="padding: 6px 8px; color: var(--azul-claro);">Embarques realizados nas últimas 24h</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><code>companhiaComMaisReservas</code></td>
+            <td style="padding: 6px 8px; color: var(--azul-claro);">Companhia líder + total</td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          <strong>Como acessar:</strong> <code>GET /dashboard/indicadores</code> — exige <code>X-API-KEY</code> +
+          Bearer + role <code>OPERATOR</code> ou <code>ADMIN</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0; line-height: 1.8;">
+          <strong>Pra que serve:</strong> ferramenta de decisão. O gerente do aeroporto olha e enxerga
+          "portão A1 está sempre cheio" → precisa de mais; "companhia X = 60% das reservas" → parceria estratégica.
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>🎤 O que falar se perguntarem:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-laranja); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "O dashboard agrega indicadores em tempo real. Não foi pedido no enunciado, mas demonstra que eu pensei além da API técnica, no valor que ela entrega ao negócio."
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- MNEMÔNICO: diferença entre os dois -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="background: #eef2ff; border-left: 4px solid var(--accent);">
+        <h3 style="color: var(--accent);">💡 Como lembrar a diferença</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--accent);">
+              <th style="text-align: left; padding: 8px;">Endpoint</th>
+              <th style="text-align: left; padding: 8px;">Analogia</th>
+              <th style="text-align: left; padding: 8px;">Responde</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #c7d2fe;">
+              <td style="padding: 8px;"><code>/health</code></td>
+              <td style="padding: 8px; color: var(--azul-claro);">🩸 Exame de sangue</td>
+              <td style="padding: 8px; color: var(--azul-claro);">"Você está saudável?"</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px;"><code>/dashboard</code></td>
+              <td style="padding: 8px; color: var(--azul-claro);">📊 Relatório do gerente</td>
+              <td style="padding: 8px; color: var(--azul-claro);">"Como vai o negócio?"</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size: 13px; color: var(--azul-claro); margin-top: 12px; font-style: italic;">
+          💡 <strong>Sugestão de ordem na demo:</strong> mostre <code>/health</code> logo após autenticar (abre
+          mostrando "sistema saudável") e <code>/dashboard</code> no final (encerra com visão de negócio).
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CARD 6: FRASE DE ABERTURA -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-verde);">
+        <h3>🎤 Frase de abertura (decore a ideia, não o texto)</h3>
+        <blockquote style="border-left: 3px solid var(--accent-verde); padding: 12px 20px; color: var(--azul-claro); font-style: italic; font-size: 15px; margin-top: 12px; line-height: 1.8;">
+          "Apresento uma API REST de gestão de aeroporto regional feita em NestJS com Prisma 7 e PostgreSQL.
+          Ela cobre autenticação por 3 perfis, os CRUDs administrativos, o fluxo completo do passageiro
+          (reservar, anexar documento, embarcar), integração externa com API de clima, upload de arquivos
+          e as 4 regras de negócio obrigatórias do enunciado — capacidade da aeronave, conflito de portão,
+          embarque único e voo cancelado.
+          Além do obrigatório, implementei paginação, rate limiting, health check e dashboard de indicadores."
+        </blockquote>
+      </div>
+
+    </section>
+
+          <section id="roteiro-demo">
+      <h2>2. Roteiro da Demo <span class="badge">Ao vivo</span></h2>
+      <p class="section-desc">
+        Passo a passo do que mostrar no Swagger com os <strong>IDs reais pós-seed</strong>.
+        Marcações: <strong style="color: var(--accent-vermelho)">🔥 Essencial</strong> ·
+        <strong style="color: var(--accent-laranja)">⭐ Bônus</strong>.
+      </p>
+
+      <!-- PREPARAÇÃO -->
+      <div class="card" style="background: var(--azul-escuro); border: none;">
+        <h3 style="color: var(--branco);">🎒 Preparação (antes de apresentar)</h3>
+        <ul style="color: var(--cinza-claro); font-size: 14px; line-height: 1.9; margin: 12px 0 0 20px;">
+          <li>Servidor rodando: <code>npm run start:dev</code></li>
+          <li>Swagger aberto: <code>http://localhost:3000/api/docs</code></li>
+          <li>Banco populado: <code>npx prisma db seed</code> (se precisar)</li>
+          <li>Chave em mãos: <code>aeroporto-api-key-2026-segura</code></li>
+        </ul>
+      </div>
+
+      <!-- BLOCO 1 -->
+      <div class="card">
+        <h3>Bloco 1 — Mostrar que a API é protegida 🔥</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin-bottom: 12px;">
+          <strong>Endpoint:</strong> <code>GET /health</code> <strong>sem auth</strong>.
+        </p>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li>Se já tiver autorizado, clica em <strong>Authorize → Logout</strong>.</li>
+          <li>Vai em <code>GET /health</code> → Try it out → Execute.</li>
+          <li>Resultado: <span class="s-401">401</span> "X-API-KEY inválida ou ausente".</li>
+        </ol>
+        <p style="font-size: 14px; margin: 12px 0 8px;"><strong>O que falar:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Toda a API é protegida por uma chave. Vou mostrar o que acontece sem ela antes de autenticar."
+        </blockquote>
+      </div>
+
+      <!-- BLOCO 2 -->
+      <div class="card">
+        <h3>Bloco 2 — Autenticar e ver o Health OK 🔥</h3>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li><strong>Authorize</strong> → cola <code>aeroporto-api-key-2026-segura</code> no X-API-KEY → Authorize.</li>
+          <li>Faz login via Postman (<code>POST /auth/login</code> com <code>{"email":"admin@aeroporto.com","senha":"Admin@123"}</code>) e copia o token.</li>
+          <li>Cola o token no campo <code>Bearer Token</code> → Authorize → Close.</li>
+          <li>Refaz <code>GET /health</code> → <span class="s-200">200</span> com <code>database: ok</code> e <code>climaApi: ok</code>.</li>
+        </ol>
+        <p style="font-size: 14px; margin: 12px 0 8px;"><strong>O que falar:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Duas camadas: X-API-KEY pra identificar a aplicação, Bearer pra identificar o usuário. O /health reporta o estado do banco e da API externa."
+        </blockquote>
+      </div>
+
+      <!-- BLOCO 3 -->
+      <div class="card">
+        <h3>Bloco 3 — Listagens com filtros e paginação 🔥</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin-bottom: 12px;">
+          <strong>Endpoint:</strong> <code>GET /voos</code>
+        </p>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li><code>GET /voos</code> sem filtros → 8 voos, ordenados por data.</li>
+          <li><code>GET /voos?status=EMBARCANDO</code> → só 1 (voo 6, G3202).</li>
+          <li><code>GET /voos?status=PROGRAMADO&limit=3</code> → 3 voos + <code>meta.totalPages: 3</code>.</li>
+        </ol>
+        <p style="font-size: 14px; margin: 12px 0 8px;"><strong>O que falar:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Todas as listagens são paginadas com filtros e ordenação. O <code>meta</code> traz total, página atual e total de páginas."
+        </blockquote>
+      </div>
+
+      <!-- BLOCO 4 -->
+      <div class="card">
+        <h3>Bloco 4 — Fluxo do PASSENGER 🔥</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin-bottom: 12px;">
+          <strong>Login:</strong> <code>passageiro@aeroporto.com / Passageiro@123</code>
+        </p>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li>Login via Postman → copia token → Authorize no Swagger.</li>
+          <li><strong>Criar reserva no voo 5</strong> (G3201, CGH→BSB) com assento livre:
+            <pre style="margin: 8px 0;"><code>POST /reservas
+{ "vooId": 5, "assento": "30A" }</code></pre>
+            → <span class="s-201">201</span> com reserva criada.
+          </li>
+          <li><code>GET /reservas/minhas</code> → lista só as reservas desse passageiro.</li>
+        </ol>
+        <p style="font-size: 14px; margin: 12px 0 8px;"><strong>O que falar:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "A identidade vem do JWT — nunca do body. Ninguém consegue reservar em nome de outro."
+        </blockquote>
+      </div>
+
+      <!-- BLOCO 5 -->
+      <div class="card">
+        <h3>Bloco 5 — Regras de negócio em ação 🔥</h3>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li><strong>Assento já ocupado:</strong> <code>POST /reservas { "vooId": 1, "assento": "15B" }</code> → <span class="s-409">409</span> "Assento já ocupado neste voo".</li>
+          <li><strong>Transição de estado inválida</strong> (como OPERATOR): <code>PATCH /voos/3/status { "status": "DECOLADO" }</code> → <span class="s-400">400</span> "Transição de PROGRAMADO para DECOLADO não é permitida".</li>
+          <li><strong>Cancelar voo com reservas ativas</strong> (OPERATOR): <code>PATCH /voos/1/status { "status": "CANCELADO" }</code> → <span class="s-409">409</span> "existem 6 reservas ativas".</li>
+        </ol>
+        <p style="font-size: 14px; margin: 12px 0 8px;"><strong>O que falar:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "As 4 regras obrigatórias do enunciado estão todas implementadas e cada uma retorna o HTTP correto."
+        </blockquote>
+      </div>
+
+            <!-- BLOCO 6 -->
+      <div class="card">
+        <h3>Bloco 6 — Autorização em ação 🔥</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin-bottom: 12px;">
+          <strong>Token:</strong> PASSENGER (<code>passageiro@aeroporto.com</code>)
+        </p>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li>
+            <strong>PASSENGER criando voo</strong> (rota só de OPERATOR/ADMIN):<br>
+            <code>POST /voos</code> com body <code>{ "numero": "HACK1", "origem": "GRU", "destino": "GIG", "dataPartida": "2027-01-01T10:00:00Z", "dataChegada": "2027-01-01T12:00:00Z", "aeronaveId": 1, "portaoId": 1 }</code><br>
+            → <span class="s-403">403</span> "Acesso negado. Necessário: OPERATOR, ADMIN"
+          </li>
+          <li style="margin-top: 8px;">
+            <strong>PASSENGER listando usuários</strong> (rota só de ADMIN):<br>
+            <code>GET /usuarios</code><br>
+            → <span class="s-403">403</span> "Acesso negado. Necessário: ADMIN"
+          </li>
+          <li style="margin-top: 8px;">
+            <strong>PASSENGER vendo reserva de outro</strong> (rota autenticada, mas é de terceiro):<br>
+            <code>GET /reservas/1</code> (com o <code>/1</code> no final! — reserva da Maria)<br>
+            → <span class="s-403">403</span> "Você não tem permissão para acessar esta reserva"
+            <br><small style="color: var(--azul-claro);">⚠️ As duas mensagens de 403 são diferentes: uma vem do RolesGuard (role errado), outra do service (recurso de terceiro).</small>
+          </li>
+        </ol>
+      </div>
+      <!-- BLOCO 7 -->
+      <div class="card">
+        <h3>Bloco 7 — Embarque (voo 6 = EMBARCANDO) 🔥</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin-bottom: 12px;">
+          <strong>Login:</strong> <code>operador@aeroporto.com / Operador@123</code>
+        </p>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li><code>POST /embarques { "reservaId": 21, "observacao": "Embarque normal" }</code> → <span class="s-201">201</span>.
+            <br><small style="color: var(--azul-claro);">Reserva 21 = passageiro@aeroporto.com, assento 1A, voo 6 (G3202 EMBARCANDO).</small>
+          </li>
+          <li><strong>Embarque duplicado:</strong> repetir a chamada → <span class="s-409">409</span> "Esta reserva já foi embarcada".</li>
+          <li><strong>Voo não está EMBARCANDO:</strong> <code>POST /embarques</code> com reserva do voo 1 → <span class="s-400">400</span> "Voo precisa estar EMBARCANDO".</li>
+        </ol>
+      </div>
+
+      <!-- BLOCO 8 -->
+      <div class="card">
+        <h3>Bloco 8 — Integração externa ⭐</h3>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li><code>GET /voos/3/clima</code> → <span class="s-200">200</span> com clima de <strong>Recife</strong> (VCP → REC).</li>
+          <li><code>GET /voos/2/clima</code> → <span class="s-200">200</span> com clima de <strong>Porto Alegre</strong> (GIG → POA).</li>
+          <li>Comentar que erros são tratados: 503 se API cair, 504 em timeout.</li>
+        </ol>
+        <p style="font-size: 14px; margin: 12px 0 8px;"><strong>O que falar:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Uso HttpService pra consultar a Open-Meteo: geocoding + clima. Timeout configurável por env, siglas IATA traduzidas pra nome de cidade."
+        </blockquote>
+      </div>
+
+      <!-- BLOCO 9 -->
+      <div class="card">
+        <h3>Bloco 9 — Extras que impressionam ⭐</h3>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.8;">
+          <li><code>GET /dashboard/indicadores</code> (OPERATOR) → métricas agregadas: 8 voos por status, portão mais usado, companhia líder.</li>
+          <li>Mencionar <strong>rate limiting</strong> no login (5/min) sem precisar executar.</li>
+        </ol>
+        <p style="font-size: 14px; margin: 12px 0 8px;"><strong>O que falar:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Além do obrigatório: dashboard de indicadores, rate limit no login, health check, paginação e soft delete nas entidades administrativas."
+        </blockquote>
+      </div>
+
+      <!-- ENCERRAMENTO -->
+      <div class="card" style="border-left: 4px solid var(--accent-verde);">
+        <h3>🏁 Encerramento</h3>
+        <blockquote style="border-left: 3px solid var(--accent-verde); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 14px;">
+          "Isso foi o essencial. O projeto tem JWT com bcrypt, upload validado, interceptor global de log, Helmet, Compression, migrations versionadas e build limpo. Tudo documentado no README."
+        </blockquote>
+      </div>
+    </section>
+
+        <section id="regras-negocio">
+      <h2>3. Regras de Negócio <span class="badge">Obrigatório</span></h2>
+      <p class="section-desc">
+        As 4 regras obrigatórias do enunciado + extras implementadas.
+        Cada card mostra <strong>onde</strong>, <strong>o que faz</strong>, e <strong>como testar</strong>.
+      </p>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- REGRA 1 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-vermelho);">
+        <h3>📌 Regra 1 — Capacidade da aeronave <span style="font-size: 11px; background: var(--accent-vermelho); color: white; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">OBRIGATÓRIA</span></h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que é:</strong> um voo não pode ter mais reservas ativas do que a capacidade da aeronave.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Onde está:</strong> <code>reservas.service.ts</code> — método <code>criar</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Como implementei:</strong> contagem de reservas ativas + criação envolvidas numa transação com isolamento <code>Serializable</code>. Isso evita <em>race condition</em> — duas requisições simultâneas não passam juntas.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Se testarem:</strong> <span class="s-409">409</span> "Aeronave sem assentos disponíveis para este voo".
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>O que falar se perguntarem:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-vermelho); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "A regra mais delicada. Se eu só contasse e depois criasse, duas requisições simultâneas no último assento passariam. Por isso uso transação Serializable — o Postgres serializa as operações e aborta uma das duas."
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- REGRA 2 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-vermelho);">
+        <h3>📌 Regra 2 — Conflito de portão <span style="font-size: 11px; background: var(--accent-vermelho); color: white; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">OBRIGATÓRIA</span></h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que é:</strong> dois voos não podem usar o mesmo portão no mesmo intervalo de tempo.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Onde está:</strong> <code>voos.service.ts</code> — método <code>existeConflitoPortao</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Como implementei:</strong> detecção de sobreposição de intervalos com a fórmula <code>inicio_A &lt; fim_B AND inicio_B &lt; fim_A</code>. Voos cancelados são ignorados (não ocupam portão). Na edição, o próprio voo é excluído da checagem.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Se testarem:</strong> <span class="s-409">409</span> "Este portão já está ocupado por outro voo neste intervalo".
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>O que falar se perguntarem:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-vermelho); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Uso lógica de interseção de intervalos. Dois intervalos [a1,a2] e [b1,b2] se sobrepõem se a1 &lt; b2 e b1 &lt; a2. Uso essa regra no filtro do Prisma."
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- REGRA 3 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-vermelho);">
+        <h3>📌 Regra 3 — Embarque único <span style="font-size: 11px; background: var(--accent-vermelho); color: white; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">OBRIGATÓRIA</span></h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que é:</strong> uma reserva só pode ser embarcada uma vez.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Onde está:</strong> <code>embarques.service.ts</code> + <code>@@unique(reservaId)</code> no schema.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Como implementei:</strong> <strong>dupla proteção</strong> — constraint no banco + checagem no service. A constraint garante integridade mesmo em corrida; a checagem no service dá mensagem amigável em vez de erro P2002 genérico.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Se testarem:</strong> repetir o POST de embarque na mesma reserva → <span class="s-409">409</span> "Esta reserva já foi embarcada".
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>O que falar se perguntarem:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-vermelho); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Fiz defesa em profundidade: constraint no banco garante que nunca duplica, e a checagem no service dá uma mensagem específica ao invés de cair no erro P2002 genérico do Prisma."
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- REGRA 4 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-vermelho);">
+        <h3>📌 Regra 4 — Voo cancelado não permite embarque <span style="font-size: 11px; background: var(--accent-vermelho); color: white; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">OBRIGATÓRIA</span></h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que é:</strong> se o voo foi cancelado, ninguém pode embarcar nele.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Onde está:</strong> <code>embarques.service.ts</code> — método <code>criar</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Como implementei:</strong> antes de criar o embarque, verifico o status do voo. Se for <code>CANCELADO</code>, rejeito. Também exijo que o voo esteja em <code>EMBARCANDO</code> — se estiver em outro estado, rejeito com mensagem diferente.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Se testarem:</strong> <span class="s-409">409</span> "Voo cancelado não permite embarque".
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>O que falar se perguntarem:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-vermelho); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Primeiro checo se o voo está cancelado (retorno 409 com mensagem exata do enunciado). Se não estiver cancelado, checo se está no estado EMBARCANDO — se não estiver, retorno 400."
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- REGRA 5 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-laranja);">
+        <h3>⭐ Regra 5 — Assento único ativo por voo</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que é:</strong> não pode ter 2 reservas <strong>ativas</strong> no mesmo assento do mesmo voo. Mas se uma for cancelada, o assento libera.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Onde está:</strong> <code>reservas.service.ts</code> — checagem dentro da transação.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Detalhe importante:</strong> essa regra foi <strong>refinada durante o desenvolvimento</strong>. Antes, a constraint do banco travava o assento pra sempre. Descobri que uma reserva cancelada impedia nova reserva do mesmo assento. Corrigi movendo a validação pro service, filtrando só reservas não-canceladas.
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>O que falar se perguntarem:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-laranja); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          "Percebi durante os testes que cancelar uma reserva não liberava o assento. Removi a constraint de unicidade do banco e movi a validação pro service, checando apenas reservas ativas. Assim o histórico de canceladas é preservado, mas o assento volta a ficar disponível."
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- REGRA 6 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-laranja);">
+        <h3>⭐ Regra 6 — Cancelar voo exige zero reservas ativas</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que é:</strong> não dá pra cancelar um voo que tem passageiros com reserva ativa. O operador precisa resolver as reservas antes.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Onde está:</strong> <code>voos.service.ts</code> — método <code>atualizarStatus</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Se testarem:</strong> <span class="s-409">409</span> "Não é possível cancelar o voo: existem N reserva(s) ativa(s)".
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- REGRA 7 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-laranja);">
+        <h3>⭐ Regra 7 — Voo não pode ter data no passado</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que é:</strong> bloquear criação de voos com <code>dataPartida</code> retroativa.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Onde está:</strong> <code>voos.service.ts</code> — método <code>criar</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Se testarem:</strong> <span class="s-400">400</span> "Data de partida não pode ser no passado".
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- REGRA 8 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-laranja);">
+        <h3>⭐ Regra 8 — Transições de status validadas</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que é:</strong> cada entidade tem um fluxo de estados válido. Transições fora do fluxo são rejeitadas.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Fluxos implementados:</strong>
+        </p>
+        <pre style="margin: 8px 0;"><code>Voo:      PROGRAMADO → EMBARCANDO → DECOLADO
+          qualquer    → CANCELADO (exceto DECOLADO)
+
+Reserva:  CONFIRMADA → UTILIZADA
+          CONFIRMADA → CANCELADA
+
+Embarque: PENDENTE | REALIZADO | BLOQUEADO</code></pre>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Se testarem:</strong> <span class="s-400">400</span> "Transição de X para Y não é permitida".
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- TABELA RESUMO -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="background: var(--azul-escuro); border: none;">
+        <h3 style="color: var(--branco);">📊 Resumo — Regra → Erro → Código</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; color: var(--cinza-claro);">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--accent);">
+              <th style="text-align: left; padding: 8px;">Regra</th>
+              <th style="text-align: left; padding: 8px;">HTTP</th>
+              <th style="text-align: left; padding: 8px;">Mensagem</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--azul-medio);">
+              <td style="padding: 8px;">Capacidade cheia</td>
+              <td style="padding: 8px;"><span class="s-409">409</span></td>
+              <td style="padding: 8px;">Aeronave sem assentos disponíveis</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--azul-medio);">
+              <td style="padding: 8px;">Assento ocupado</td>
+              <td style="padding: 8px;"><span class="s-409">409</span></td>
+              <td style="padding: 8px;">Assento já ocupado neste voo</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--azul-medio);">
+              <td style="padding: 8px;">Reserva duplicada</td>
+              <td style="padding: 8px;"><span class="s-409">409</span></td>
+              <td style="padding: 8px;">Você já possui reserva para este voo</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--azul-medio);">
+              <td style="padding: 8px;">Conflito de portão</td>
+              <td style="padding: 8px;"><span class="s-409">409</span></td>
+              <td style="padding: 8px;">Portão já está ocupado neste intervalo</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--azul-medio);">
+              <td style="padding: 8px;">Cancelar voo com reservas</td>
+              <td style="padding: 8px;"><span class="s-409">409</span></td>
+              <td style="padding: 8px;">Existem N reservas ativas</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--azul-medio);">
+              <td style="padding: 8px;">Voo cancelado + embarque</td>
+              <td style="padding: 8px;"><span class="s-409">409</span></td>
+              <td style="padding: 8px;">Voo cancelado não permite embarque</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--azul-medio);">
+              <td style="padding: 8px;">Embarque duplicado</td>
+              <td style="padding: 8px;"><span class="s-409">409</span></td>
+              <td style="padding: 8px;">Esta reserva já foi embarcada</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px;">Transição inválida</td>
+              <td style="padding: 8px;"><span class="s-400">400</span></td>
+              <td style="padding: 8px;">Transição de X para Y não é permitida</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+        <section id="endpoints">
+      <h2>4. Endpoints (Cheat Sheet) <span class="badge">Referência</span></h2>
+      <p class="section-desc">
+        Lista compacta pra consulta rápida. Legenda:
+        🟢 pública · 🔵 autenticado · 🟡 OPERATOR/ADMIN · 🔴 ADMIN
+      </p>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- HEALTH -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🩺 Health</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/health</td>
+            <td style="padding: 6px 8px;">🔵 Status da API + banco + clima</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- AUTH -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🔐 Autenticação</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">POST</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/auth/login</td>
+            <td style="padding: 6px 8px;">🟢 Login (5/min rate limit)</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- USUÁRIOS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>👥 Usuários <span style="font-size: 11px; color: var(--accent-vermelho);">(só ADMIN)</span></h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/usuarios</td>
+            <td style="padding: 6px 8px;">🔴 Lista usuários (sem senha)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/usuarios/:id</td>
+            <td style="padding: 6px 8px;">🔴 Busca por ID</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/usuarios/:id/desativar</td>
+            <td style="padding: 6px 8px;">🔴 Desativa (bloqueia auto-desativação)</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/usuarios/:id/reativar</td>
+            <td style="padding: 6px 8px;">🔴 Reativa</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- COMPANHIAS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🏢 Companhias Aéreas</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">POST</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/companhias</td>
+            <td style="padding: 6px 8px;">🟡 Cria companhia</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/companhias</td>
+            <td style="padding: 6px 8px;">🔵 Lista todas</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/companhias/:id</td>
+            <td style="padding: 6px 8px;">🔵 Busca por ID</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/companhias/:id</td>
+            <td style="padding: 6px 8px;">🟡 Atualiza</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/companhias/:id/desativar</td>
+            <td style="padding: 6px 8px;">🔴 Bloqueia se tem voos ativos</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/companhias/:id/reativar</td>
+            <td style="padding: 6px 8px;">🔴 Reativa</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- AERONAVES -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🛩️ Aeronaves</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">POST</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/aeronaves</td>
+            <td style="padding: 6px 8px;">🟡 Cria</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/aeronaves</td>
+            <td style="padding: 6px 8px;">🔵 Lista (com companhia)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/aeronaves/:id</td>
+            <td style="padding: 6px 8px;">🔵 Busca por ID</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/aeronaves/:id</td>
+            <td style="padding: 6px 8px;">🟡 Atualiza</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/aeronaves/:id/desativar</td>
+            <td style="padding: 6px 8px;">🔴 Bloqueia se tem voos ativos</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/aeronaves/:id/reativar</td>
+            <td style="padding: 6px 8px;">🔴 Reativa</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- PORTÕES -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🚪 Portões</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">POST</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/portoes</td>
+            <td style="padding: 6px 8px;">🟡 Cria</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/portoes</td>
+            <td style="padding: 6px 8px;">🔵 Lista</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/portoes/:id</td>
+            <td style="padding: 6px 8px;">🔵 Busca por ID</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/portoes/:id</td>
+            <td style="padding: 6px 8px;">🟡 Atualiza</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/portoes/:id/desativar</td>
+            <td style="padding: 6px 8px;">🔴 Bloqueia se tem voos ativos</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/portoes/:id/reativar</td>
+            <td style="padding: 6px 8px;">🔴 Reativa</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- VOOS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>✈️ Voos</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">POST</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/voos</td>
+            <td style="padding: 6px 8px;">🟡 Cria (conflito de portão = 409)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/voos</td>
+            <td style="padding: 6px 8px;">🔵 Lista paginada (filtros: status, origem, destino)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/voos/:id</td>
+            <td style="padding: 6px 8px;">🔵 Busca por ID</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/voos/:id/clima</td>
+            <td style="padding: 6px 8px;">🔵 ⭐ Integração externa (Open-Meteo)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/voos/:id</td>
+            <td style="padding: 6px 8px;">🟡 Atualiza</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/voos/:id/status</td>
+            <td style="padding: 6px 8px;">🟡 Muda status (transições validadas)</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- RESERVAS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🎫 Reservas</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">POST</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/reservas</td>
+            <td style="padding: 6px 8px;">🔵 Cria (capacidade + assento + duplicidade)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/reservas/minhas</td>
+            <td style="padding: 6px 8px;">🔵 Só as do JWT</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/reservas</td>
+            <td style="padding: 6px 8px;">🟡 Lista paginada (filtros: status, vooId, usuarioId)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/reservas/:id</td>
+            <td style="padding: 6px 8px;">🔵 PASSENGER só vê a própria (403 se for de outro)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/reservas/:id/status</td>
+            <td style="padding: 6px 8px;">🟡 Muda status</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-amarelo); font-weight: 700;">PATCH</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/reservas/:id/cancelar</td>
+            <td style="padding: 6px 8px;">🔵 Cancela a própria (libera assento)</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">POST</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/reservas/:id/documento</td>
+            <td style="padding: 6px 8px;">🔵 Upload (PDF/JPG/PNG até 5MB)</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- EMBARQUES -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🚶 Embarques</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">POST</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/embarques</td>
+            <td style="padding: 6px 8px;">🟡 Registra (voo tem que estar EMBARCANDO)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/embarques</td>
+            <td style="padding: 6px 8px;">🟡 Lista paginada</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cinza-claro);">
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/embarques/voo/:vooId</td>
+            <td style="padding: 6px 8px;">🟡 Por voo</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/embarques/:id</td>
+            <td style="padding: 6px 8px;">🟡 Busca por ID</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- DASHBOARD -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>📊 Dashboard</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tr>
+            <td style="padding: 6px 8px; width: 70px;"><span style="color: var(--accent-verde); font-weight: 700;">GET</span></td>
+            <td style="padding: 6px 8px; font-family: monospace;">/dashboard/indicadores</td>
+            <td style="padding: 6px 8px;">🟡 ⭐ Indicadores agregados</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- AUTENTICAÇÃO DE CADA CHAMADA -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="background: #fff3cd; border-left: 4px solid var(--accent-amarelo);">
+        <h3 style="color: #856404;">⚠️ Lembrete: TODA rota exige <code>X-API-KEY</code></h3>
+        <p style="font-size: 14px; color: #856404; margin-top: 8px;">
+          Além do <code>X-API-KEY</code>, as rotas 🔵 🟡 🔴 também exigem <code>Authorization: Bearer &lt;token&gt;</code>.
+          O <code>/auth/login</code> é a única que precisa apenas de <code>X-API-KEY</code>.
+        </p>
+      </div>
+
+    </section>
+
+        <section id="perguntas">
+      <h2>5. Perguntas Prováveis <span class="badge">Preparação</span></h2>
+      <p class="section-desc">
+        Perguntas que a banca pode fazer + respostas prontas. Ensaie em voz alta — não decore, <strong>entenda</strong>.
+      </p>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CATEGORIA 1: ARQUITETURA -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3 style="color: var(--accent);">🏗️ Arquitetura</h3>
+
+        <div style="margin-top: 16px; padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Por que você separou o projeto em módulos?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Cada domínio tem seu próprio module, controller e service. Isso isola responsabilidades: o controller só cuida do HTTP, o service só cuida da regra de negócio, e o PrismaService centraliza o acesso ao banco. Fica fácil dar manutenção e testar."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Onde ficam as regras de negócio?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Sempre no service. Os controllers só recebem a requisição, validam o formato via DTO e delegam. Nenhum controller tem if de regra de negócio."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Por que usar DTOs em vez de receber o objeto direto?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "O DTO define o contrato de entrada. Com class-validator + ValidationPipe global, tudo que chega é validado antes de tocar o service. Também evita que campos não autorizados passem — o forbidNonWhitelisted rejeita body com campo extra."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Se eu pedir pra adicionar uma nova entidade, o que você muda?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 0;">
+            "Crio o model no schema.prisma, rodo a migration, crio a pasta do módulo com service, controller, DTOs, e registro no app.module. O padrão se repete."
+          </p>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CATEGORIA 2: BANCO / PRISMA -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3 style="color: var(--accent);">🗄️ Prisma / Banco de Dados</h3>
+
+        <div style="margin-top: 16px; padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Como você modelou os relacionamentos?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Usei relations reais do Prisma, não FKs soltas. Companhia tem várias aeronaves, aeronave tem vários voos, voo tem várias reservas, e reserva tem um embarque. Isso permite usar include e _count pra trazer dados relacionados em uma única query."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Por que usar migrations e não db push?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Migrations ficam versionadas no Git. Qualquer pessoa que clonar o projeto consegue rodar 'npx prisma migrate deploy' e ter o mesmo banco. É o padrão de produção."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">O que é o driver adapter do Prisma 7?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "É uma mudança do Prisma 7 — em vez do client nativo compilado, ele usa o driver do banco diretamente. No nosso caso, o @prisma/adapter-pg. Isso deixa o bundle menor e a conexão mais previsível."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">O seed apaga dados existentes?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 0;">
+            "Não. Ele é idempotente — antes de criar, checa se o registro já existe. Posso rodar várias vezes sem duplicar nada."
+          </p>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CATEGORIA 3: REGRAS DE NEGÓCIO -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3 style="color: var(--accent);">📏 Regras de Negócio</h3>
+
+        <div style="margin-top: 16px; padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Como você impede que 2 pessoas reservem o último assento ao mesmo tempo?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Uso transação com isolamento Serializable. O Postgres serializa as duas operações — se duas rodarem juntas, uma delas é abortada e recebe P2034, que eu trato como 409 'tente novamente'. Sem isso, haveria race condition."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Como funciona a detecção de conflito de portão?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Uso interseção de intervalos. Dois voos conflitam se a partida de um for antes da chegada do outro E vice-versa. Voos cancelados são ignorados, e na edição eu excluo o próprio voo da checagem."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Se o passageiro cancelar, o assento volta a ficar disponível?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Sim. Durante os testes eu percebi que a constraint de unicidade no banco não liberava o assento ao cancelar. Removi essa constraint e movi a checagem pro service, validando apenas reservas não-canceladas. Assim o histórico é preservado e o assento volta a ficar disponível."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Por que bloquear cancelamento de voo com reservas ativas?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 0;">
+            "Pra proteger o passageiro. Se cancelasse direto, os clientes ficariam no prejuízo. A regra força o operador a resolver as reservas primeiro — cancelar ou realocar — antes de cancelar o voo."
+          </p>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CATEGORIA 4: SEGURANÇA -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3 style="color: var(--accent);">🔐 Segurança</h3>
+
+        <div style="margin-top: 16px; padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Por que usar X-API-KEY além do JWT?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "São camadas diferentes. O X-API-KEY identifica a aplicação cliente — só quem tem a chave consegue falar com a API. O JWT identifica o usuário. Isso evita que qualquer app externo consuma a API sem autorização prévia."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Como você protege contra usuário alterando ID no body?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Os DTOs de reserva não têm campo usuarioId — o ID vem sempre do @CurrentUser, extraído do JWT. Mesmo se mandarem no body, o forbidNonWhitelisted rejeita com 400. E o service checa se o recurso pertence ao usuário autenticado antes de qualquer ação."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">As senhas ficam salvas como?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Hasheadas com bcrypt, custo 10. Em nenhum endpoint a senha ou o hash é retornado — sempre faço select explícito dos campos ou monto o objeto sem a senha."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Por que o Helmet e o Compression?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "O Helmet adiciona headers HTTP de segurança — proteção contra XSS, clickjacking, sniffing. O Compression reduz o payload das respostas maiores que 1KB. Ambos são uma linha no main.ts e são boas práticas."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Como funciona o rate limiting?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 0;">
+            "Uso @nestjs/throttler global: 100 requisições por minuto por IP. No /auth/login, aperto pra 5 por minuto contra brute force. Se estourar, retorna 429."
+          </p>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CATEGORIA 5: TRATAMENTO DE ERRO -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3 style="color: var(--accent);">⚠️ Tratamento de Erro</h3>
+
+        <div style="margin-top: 16px; padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Como você escolhe o status HTTP correto?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "400 pra body inválido ou operação incompatível com o estado atual. 401 pra ausência de autenticação. 403 pra autenticado sem permissão. 404 pra recurso inexistente. 409 pra conflito de regra de negócio. Essa separação é importante — o cliente sabe se o problema é dele, do servidor, ou da regra."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Por que a mensagem do erro é específica e não genérica?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 0;">
+            "Pra dar contexto. 'Conflito ao criar reserva' não diz nada. 'Assento já ocupado neste voo' é acionável. Descobri que o Prisma 7 com driver adapter mudou o formato do erro P2002 e ajustei o handler pra ler o formato novo."
+          </p>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- CATEGORIA 6: PEGADINHAS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="border-left: 4px solid var(--accent-vermelho);">
+        <h3 style="color: var(--accent-vermelho);">🎯 Perguntas Difíceis (as que dão medo)</h3>
+
+        <div style="margin-top: 16px; padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Se eu duplicar a API em 2 servidores, a regra de capacidade funciona?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Funciona porque a garantia está no banco, não na aplicação. A transação Serializable é do PostgreSQL — mesmo com 2 servidores, o banco serializa as escritas. Se fosse um lock em memória, aí quebraria."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Você testou o upload com arquivo gigante?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Sim — configurei limite de 5MB via ParseFilePipe. Acima disso, retorna 400 com mensagem clara. Os tipos permitidos também são validados por mimetype."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Se a API de clima cair, o que acontece?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "A rota do clima retorna 503 'API externa indisponível'. Configurei timeout de 5s — se estourar, retorna 504. O resto da API continua funcionando normal, porque a integração é isolada num endpoint só."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">Por que você não usou DELETE nos recursos administrativos?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 16px;">
+            "Prefiro inativar a deletar. Isso preserva o histórico — reservas antigas ainda apontam pra companhias e aeronaves que existiram. Se eu deletasse, quebraria as FKs e perderia dados. É o padrão de soft delete."
+          </p>
+        </div>
+
+        <div style="padding-left: 16px; border-left: 3px solid var(--cinza-claro);">
+          <p style="font-weight: 600; font-size: 14px;">O que você faria diferente se tivesse mais tempo?</p>
+          <p style="font-size: 13px; color: var(--azul-claro); margin: 4px 0 0;">
+            "Adicionaria testes automatizados com Jest, versionaria a API em /v1, e colocaria um refresh token no lugar do JWT de 8h. Também consideraria um cache Redis para os indicadores do dashboard."
+          </p>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- DICAS DE POSTURA -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="background: var(--azul-escuro); border: none;">
+        <h3 style="color: var(--branco);">💡 Dicas de postura na hora H</h3>
+        <ul style="color: var(--cinza-claro); font-size: 14px; line-height: 1.9; margin: 12px 0 0 20px;">
+          <li><strong style="color: var(--accent);">Se não souber:</strong> "não implementei isso, mas sei que daria pra fazer com X." Nunca invente.</li>
+          <li><strong style="color: var(--accent);">Se te pegarem num bug:</strong> "boa observação, eu não tinha pensado nisso. Daria pra resolver com Y."</li>
+          <li><strong style="color: var(--accent);">Sempre cite o POR QUÊ:</strong> não diga só "usei Serializable", diga "usei pra evitar race condition".</li>
+          <li><strong style="color: var(--accent);">Não peça desculpas por não saber:</strong> você tem 3 meses. Eles sabem.</li>
+          <li><strong style="color: var(--accent);">Respire antes de responder.</strong> 2 segundos de silêncio é melhor que 30 de enrolação.</li>
+        </ul>
+      </div>
+
+    </section>
+
+        <section id="decisoes">
+      <h2>6. Decisões Técnicas <span class="badge">Profundidade</span></h2>
+      <p class="section-desc">
+        Cada decisão tem <strong>o que foi feito</strong>, <strong>o porquê</strong> e <strong>o que foi descartado</strong>.
+        Se te perguntarem algo profundo, a resposta está aqui.
+      </p>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- 1. TRANSAÇÃO SERIALIZABLE -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🔒 Transação <code>Serializable</code> na criação de reserva</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que foi feito:</strong> a checagem de capacidade + criação da reserva rodam dentro de uma transação com <code>isolationLevel: 'Serializable'</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Por quê:</strong> sem isso, duas requisições simultâneas no último assento passariam as duas na checagem e ambas criariam reserva — estourando a capacidade. Com Serializable, o Postgres serializa as transações e aborta uma.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Alternativa descartada:</strong> usar <code>ReadCommitted</code> + lock manual. Mais complexo e menos seguro.
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>Trade-off:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-amarelo); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          Serializable pode gerar conflito (P2034) em alta concorrência. Trato isso retornando 409 com "tente novamente" — o cliente pode reenviar. É o preço da integridade.
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- 2. GUARDS EM CAMADAS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🛡️ Guards em camadas (API Key → JWT → Roles)</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que foi feito:</strong> 3 guards aplicados em ordem:
+        </p>
+        <ol style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.9;">
+          <li><code>ApiKeyGuard</code> — global, exige <code>X-API-KEY</code> em tudo</li>
+          <li><code>JwtAuthGuard</code> — nas rotas privadas, valida o token</li>
+          <li><code>RolesGuard</code> — checa se o role do usuário está autorizado</li>
+        </ol>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Por quê:</strong> defesa em profundidade. Cada camada responde uma pergunta diferente:
+        </p>
+        <ul style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.9;">
+          <li>"Essa aplicação pode chamar a API?" → API Key</li>
+          <li>"Esse usuário está autenticado?" → JWT</li>
+          <li>"Esse usuário tem permissão?" → Roles</li>
+        </ul>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Efeito colateral bom:</strong> o <code>ApiKeyGuard</code> roda antes do <code>ThrottlerGuard</code>, então requisições com chave errada nem contam pro rate limit. Isso dificulta ataques de reconhecimento.
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- 3. INTERCEPTOR SÓ PRA LOG -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>📝 Interceptor global só pra log (sem regra de negócio)</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que foi feito:</strong> um <code>LoggingInterceptor</code> global que registra método, rota, status HTTP e tempo de execução de cada requisição.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Por quê não colocar regra de negócio ali?</strong> O enunciado proíbe explicitamente. Interceptors rodam em toda requisição — colocar regra lá espalha lógica por todo lado. Regra vive no service.
+        </p>
+        <pre style="margin: 12px 0;"><code>[HTTP] POST /reservas → 201 (54ms)
+[HTTP] POST /reservas → 409 (55ms) - Você já possui reserva para este voo
+[HTTP] POST /reservas → 400 (2ms) - Bad Request Exception</code></pre>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Valor prático:</strong> em produção, saber que uma rota demora 500ms é o primeiro passo pra otimizar. Sem interceptor, isso vira caça ao tesouro.
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- 4. DTO + VALIDATION PIPE -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>📋 DTOs com <code>class-validator</code> + ValidationPipe global</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que foi feito:</strong> toda entrada de dados passa por um DTO decorado com validadores. O <code>ValidationPipe</code> global está configurado com <code>whitelist: true</code>, <code>forbidNonWhitelisted: true</code> e <code>transform: true</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Cada flag faz o quê:</strong>
+        </p>
+        <ul style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.9;">
+          <li><code>whitelist</code> → remove campos que não estão no DTO</li>
+          <li><code>forbidNonWhitelisted</code> → em vez de só remover, rejeita com 400</li>
+          <li><code>transform</code> → converte tipos (query string "1" → número 1)</li>
+        </ul>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Por quê:</strong> segurança e consistência. Sem <code>forbidNonWhitelisted</code>, alguém poderia mandar <code>usuarioId</code> no body de reserva — o DTO não tem esse campo, mas sem a flag o Prisma poderia usar o valor. Com a flag, é rejeitado antes.
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- 5. SOFT DELETE -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🗑️ Soft delete em vez de DELETE físico</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que foi feito:</strong> entidades administrativas (Companhia, Aeronave, Portão, Usuário) têm campo <code>ativo</code>. A rota <code>/desativar</code> só muda o booleano. Não há DELETE.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Por quê:</strong> integridade histórica. Uma reserva antiga ainda aponta pra uma aeronave que existiu — se eu deletasse, a reserva quebraria ou ficaria órfã. Sem contar que auditoria exige histórico.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Regras que eu adicionei:</strong>
+        </p>
+        <ul style="margin-left: 20px; font-size: 14px; color: var(--azul-claro); line-height: 1.9;">
+          <li>Não dá pra desativar Companhia com voos ativos</li>
+          <li>Não dá pra desativar Aeronave com voos ativos</li>
+          <li>Não dá pra desativar Portão com voos ativos</li>
+          <li>Usuário não pode desativar a si mesmo</li>
+          <li>Usuário inativo não faz login (403)</li>
+        </ul>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- 6. TRATAMENTO DO P2002 -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>🐛 Tratamento específico do erro P2002 (Prisma 7)</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Problema:</strong> quando 2 reservas tentam violar a constraint de unicidade (usuário duplicado no voo), o Prisma 7 + driver adapter do Postgres retorna o erro P2002 num formato diferente do Prisma "clássico".
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que descobri:</strong> em vez de <code>error.meta.target</code> (array), ele retorna <code>error.meta.driverAdapterError.cause.constraint.index</code> (string) — ex: <code>reservas_usuarioId_vooId_key</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Como resolvi:</strong> o handler tenta os dois formatos — o novo primeiro, o antigo como fallback. Depois busca <code>"usuarioId"</code> dentro do nome da constraint pra decidir a mensagem.
+        </p>
+        <p style="font-size: 14px; margin: 12px 0 4px;"><strong>Como descobri:</strong></p>
+        <blockquote style="border-left: 3px solid var(--accent-laranja); padding: 8px 16px; color: var(--azul-claro); font-style: italic; font-size: 13px;">
+          Adicionei um console.log temporário dentro do catch pra ver o formato real do error.meta. Vi que não era array, era aninhado. Ajustei o código pra ler de lá e removi o log depois.
+        </blockquote>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- 7. MÓDULOS SEPARADOS -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>📦 Health e Dashboard como módulos separados</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que foi feito:</strong> <code>/health</code> e <code>/dashboard/indicadores</code> são módulos próprios, não fazem parte de nenhum domínio.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Por quê:</strong> eles não pertencem a nenhum recurso específico. Colocar em <code>voos/</code> seria semanticamente errado. Cada um cuida do seu escopo — o dashboard agrega dados de voos, reservas e embarques; o health checa infraestrutura.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Bônus:</strong> são endpoints que o enunciado não pediu. Foram implementados pra demonstrar senioridade — health é padrão de produção, dashboard mostra visão de negócio.
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- 8. PAGINAÇÃO PADRÃO -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card">
+        <h3>📄 Paginação padronizada em todas as listagens</h3>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>O que foi feito:</strong> todo <code>GET</code> de listagem aceita <code>?page=&limit=&orderBy=&order=</code> e retorna <code>{ data: [...], meta: { total, page, limit, totalPages } }</code>.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Por quê o formato <code>{ data, meta }</code>:</strong> separa conteúdo de metadados. Se você retorna um array puro, o cliente não sabe quantos registros existem no total, nem quantas páginas. Com meta, ele pode montar a paginação.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Proteção contra SQL injection:</strong> o <code>orderBy</code> aceito é validado contra uma whitelist de colunas permitidas. Se passarem algo estranho, cai no default. Nunca interpolo strings direto.
+        </p>
+        <p style="font-size: 14px; color: var(--azul-claro); margin: 8px 0;">
+          <strong>Limite máximo:</strong> o <code>limit</code> é travado em 100 via <code>@Max(100)</code>. Isso evita que alguém faça <code>?limit=999999</code> e derrube o banco.
+        </p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- FECHAMENTO -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <div class="card" style="background: var(--azul-escuro); border: none;">
+        <h3 style="color: var(--branco);">🎯 Como usar essa seção</h3>
+        <p style="color: var(--cinza-claro); font-size: 14px; line-height: 1.8; margin-top: 12px;">
+          Não jogue tudo na apresentação. Essas decisões são pra <strong>consultar quando perguntarem</strong>. A ideia é ter a resposta pronta na ponta da língua — se um avaliador perguntar "por que Serializable?", você olha aqui e responde.
+        </p>
+        <p style="color: var(--cinza-claro); font-size: 14px; line-height: 1.8; margin-top: 12px;">
+          A frase mágica que conecta tudo: <strong style="color: var(--accent);">"Não foi escolha aleatória — cada decisão tem um motivo."</strong> Isso é o que separa quem copiou de quem entendeu.
+        </p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <button class="back-top" id="backTop" aria-label="Voltar ao topo">↑</button>
+
+  <script>
+    // Scroll suave ao clicar no menu
+    document.querySelectorAll('.sidebar nav a').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Destaca o link ativo conforme a seção visível
+    const secoes = document.querySelectorAll('section');
+    const links = document.querySelectorAll('.sidebar nav a');
+    window.addEventListener('scroll', () => {
+      let atual = '';
+      secoes.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 100) atual = s.id;
+      });
+      links.forEach(l => {
+        l.classList.toggle('active', l.getAttribute('href') === '#' + atual);
+      });
+
+      // Botão voltar ao topo
+      document.getElementById('backTop').classList.toggle('show', window.scrollY > 300);
+    });
+
+    // Botão voltar ao topo
+    document.getElementById('backTop').addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+
+</body>
+</html>
