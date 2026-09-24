@@ -71,3 +71,6 @@ skills-lock.json
 
 uploads/*
 !uploads/.gitkeep
+
+# Material de estudo (não subir pro GitHub)
+docs/
